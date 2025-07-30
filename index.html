@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathAI Solver - Pecahkan Semua Soal Matematika</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --accent: #06b6d4;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.125rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            padding: 2rem 0;
+            min-height: calc(100vh - 200px);
+        }
+
+        .solver-section {
+            background: var(--surface);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-area {
+            margin-bottom: 2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        #mathInput {
+            width: 100%;
+            min-height: 120px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            color: var(--text);
+            font-size: 1rem;
+            resize: vertical;
+            transition: all 0.3s;
+        }
+
+        #mathInput:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .input-hint {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-muted);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .quick-math {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .quick-math-btn {
+            padding: 0.5rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            color: var(--text);
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .quick-math-btn:hover {
+            background: var(--surface);
+            border-color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .result-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--bg);
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            min-height: 200px;
+            position: relative;
+        }
+
+        .result-section.hidden {
+            display: none;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result-content {
+            line-height: 1.8;
+        }
+
+        .result-step {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 4px solid var(--primary);
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .result-final {
+            font-size: 1.5rem;
+            color: var(--success);
+            font-weight: bold;
+            text-align: center;
+            padding: 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .history-section {
+            background: var(--surface);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: var(--bg);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .history-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateX(5px);
+        }
+
+        .history-item .problem {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .history-item .answer {
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .clear-history {
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background: transparent;
+            border: 1px solid var(--error);
+            color: var(--error);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .clear-history:hover {
+            background: var(--error);
+            color: white;
+        }
+
+        .examples {
+            margin-top: 2rem;
+        }
+
+        .examples h3 {
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+        }
+
+        .example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .example-card {
+            padding: 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .example-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .example-card .example-text {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .history-section {
+                order: -1;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .error-message {
+            color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .syntax-highlight {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            border-left: 3px solid var(--primary);
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-calculator"></i> MathAI Solver By Martin Woik</h1>
+            <p class="subtitle">Solusi Cerdas untuk Semua Soal Matematika Anda.</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="main-content">
+            <div class="solver-section">
+                <div class="input-area">
+                    <label for="mathInput">Masukkan soal matematika Anda:</label>
+                    <textarea 
+                        id="mathInput" 
+                        placeholder="Contoh: integral dari x^2 dx, atau 2x + 5 = 13, atau sin(30 derajat)"
+                        spellcheck="false"
+                    ></textarea>
+                    <p class="input-hint">
+                        <i class="fas fa-lightbulb"></i>
+                        Tips: Gunakan ^ untuk pangkat, * untuk kali, / untuk bagi
+                    </p>
+                </div>
+
+                <div class="quick-math">
+                    <button class="quick-math-btn" onclick="insertSymbol('∫')">∫</button>
+                    <button class="quick-math-btn" onclick="insertSymbol('√')">√</button>
+                    <button class="quick-math-btn" onclick="insertSymbol('π')">π</button>
+                    <button class="quick-math-btn" onclick="insertSymbol('θ')">θ</button>
+                    <button class="quick-math-btn" onclick="insertSymbol('²')">²</button>
+                    <button class="quick-math-btn" onclick="insertSymbol('³')">³</button>
+                    <button class="quick-math-btn" onclick="insertSymbol('lim')">lim</button>
+                    <button class="quick-math-btn" onclick="insertSymbol('∞')">∞</button>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="solveMath()">
+                        <i class="fas fa-brain"></i> Pecahkan
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearInput()">
+                        <i class="fas fa-eraser"></i> Bersihkan
+                    </button>
+                </div>
+
+                <div class="result-section hidden" id="resultSection">
+                    <button class="copy-btn" onclick="copyResult()">
+                        <i class="fas fa-copy"></i> Salin
+                    </button>
+                    <div id="resultContent"></div>
+                </div>
+
+                <div class="examples">
+                    <h3><i class="fas fa-star"></i> Contoh Soal Populer</h3>
+                    <div class="example-grid">
+                        <div class="example-card" onclick="setExample('Hitung integral dari x^2 dx')">
+                            <div class="example-text">Integral: ∫x² dx</div>
+                        </div>
+                        <div class="example-card" onclick="setExample('Selesaikan persamaan 2x + 5 = 13')">
+                            <div class="example-text">Aljabar: 2x + 5 = 13</div>
+                        </div>
+                        <div class="example-card" onclick="setExample('Hitung luas lingkaran dengan jari-jari 7 cm')">
+                            <div class="example-text">Geometri: Luas lingkaran</div>
+                        </div>
+                        <div class="example-card" onclick="setExample('Hitung turunan dari x³ + 2x² - 5x + 3')">
+                            <div class="example-text">Turunan: d/dx(x³ + 2x² - 5x + 3)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-section">
+                <h2><i class="fas fa-history"></i> Riwayat</h2>
+                <div id="historyList"></div>
+                <button class="clear-history" onclick="clearHistory()">
+                    <i class="fas fa-trash"></i> Hapus Semua Riwayat
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@11.11.0/lib/browser/math.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <script>
+        let history = JSON.parse(localStorage.getItem('mathHistory') || '[]');
+        let currentResult = '';
+
+        // Inisialisasi
+        updateHistoryDisplay();
+
+        function insertSymbol(symbol) {
+            const textarea = document.getElementById('mathInput');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            textarea.value = text.substring(0, start) + symbol + text.substring(end);
+            textarea.focus();
+            textarea.selectionStart = textarea.selectionEnd = start + symbol.length;
+        }
+
+        function setExample(text) {
+            document.getElementById('mathInput').value = text;
+        }
+
+        function clearInput() {
+            document.getElementById('mathInput').value = '';
+            document.getElementById('resultSection').classList.add('hidden');
+        }
+
+        async function solveMath() {
+            const input = document.getElementById('mathInput').value.trim();
+            if (!input) {
+                alert('Silakan masukkan soal matematika!');
+                return;
+            }
+
+            const resultSection = document.getElementById('resultSection');
+            const resultContent = document.getElementById('resultContent');
+            
+            resultSection.classList.remove('hidden');
+            resultContent.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+            try {
+                // Parsing dan perhitungan menggunakan mathjs
+                let result = '';
+                let steps = [];
+                
+                // Deteksi jenis soal
+                if (input.toLowerCase().includes('integral') || input.includes('∫')) {
+                    // Integral
+                    const expr = input.replace(/integral|∫/gi, '').trim();
+                    const simplified = math.simplify(expr);
+                    const integrated = math.integral(expr, 'x');
+                    result = integrated.toString();
+                    steps = [
+                        `Menyederhanakan ekspresi: ${simplified.toString()}`,
+                        `Mengintegralkan terhadap x`,
+                        `Hasil: ${integrated.toString()} + C`
+                    ];
+                } else if (input.toLowerCase().includes('turunan') || input.includes('d/dx')) {
+                    // Turunan
+                    const expr = input.replace(/turunan|d\/dx/gi, '').trim();
+                    const derivative = math.derivative(expr, 'x');
+                    result = derivative.toString();
+                    steps = [
+                        `Menurunkan ekspresi: ${expr}`,
+                        `Hasil turunan: ${derivative.toString()}`
+                    ];
+                } else if (input.includes('=')) {
+                    // Persamaan
+                    const [left, right] = input.split('=');
+                    const scope = {};
+                    const solution = math.solve(`${left} - (${right})`, 'x');
+                    result = Array.isArray(solution) ? solution.join(', ') : solution.toString();
+                    steps = [
+                        `Menyusun persamaan: ${left} = ${right}`,
+                        `Menyelesaikan untuk x`,
+                        `Solusi: x = ${result}`
+                    ];
+                } else if (input.toLowerCase().includes('luas lingkaran') || input.includes('π')) {
+                    // Luas lingkaran
+                    const radius = parseFloat(input.match(/\d+(\.\d+)?/)[0]);
+                    const area = Math.PI * radius * radius;
+                    result = `${area.toFixed(2)} cm²`;
+                    steps = [
+                        `Rumus luas lingkaran: πr²`,
+                        `Jari-jari: ${radius} cm`,
+                        `Perhitungan: π × ${radius}² = ${result}`
+                    ];
+                } else {
+                    // Evaluasi ekspresi umum
+                    const evaluated = math.evaluate(input);
+                    result = evaluated.toString();
+                    steps = [`Evaluasi ekspresi: ${input} = ${result}`];
+                }
+
+                currentResult = result;
+                
+                // Simpan ke riwayat
+                history.unshift({
+                    problem: input,
+                    answer: result,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Batasi riwayat 50 item
+                if (history.length > 50) history = history.slice(0, 50);
+                
+                localStorage.setItem('mathHistory', JSON.stringify(history));
+                updateHistoryDisplay();
+
+                // Tampilkan hasil
+                setTimeout(() => {
+                    let html = '<div class="result-content">';
+                    steps.forEach((step, i) => {
+                        html += `<div class="result-step">${i + 1}. ${step}</div>`;
+                    });
+                    html += `<div class="result-final">Jawaban: ${result}</div>`;
+                    html += '</div>';
+                    
+                    resultContent.innerHTML = html;
+                    
+                    // Render LaTeX jika ada
+                    renderMathInElement(resultContent[0] || resultContent, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false}
+                        ]
+                    });
+                }, 1000);
+
+            } catch (error) {
+                resultContent.innerHTML = `
+                    <div class="error-message">
+                        <strong>Error:</strong> ${error.message}
+                        <br>Periksa kembali format input Anda.
+                    </div>
+                `;
+            }
+        }
+
+        function updateHistoryDisplay() {
+            const historyList = document.getElementById('historyList');
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Belum ada riwayat</p>';
+                return;
+            }
+
+            historyList.innerHTML = history.map(item => `
+                <div class="history-item" onclick="loadHistory('${item.problem}')">
+                    <div class="problem">${item.problem}</div>
+                    <div class="answer">= ${item.answer}</div>
+                </div>
+            `).join('');
+        }
+
+        function loadHistory(problem) {
+            document.getElementById('mathInput').value = problem;
+            document.getElementById('resultSection').classList.add('hidden');
+        }
+
+        function clearHistory() {
+            if (confirm('Yakin ingin menghapus semua riwayat?')) {
+                history = [];
+                localStorage.removeItem('mathHistory');
+                updateHistoryDisplay();
+            }
+        }
+
+        function copyResult() {
+            if (currentResult) {
+                navigator.clipboard.writeText(currentResult).then(() => {
+                    // Tampilkan notifikasi sukses
+                    const btn = event.target;
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Tersalin!';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                    }, 2000);
+                });
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                solveMath();
+            }
+        });
+    </script>
+</body>
+</html>
